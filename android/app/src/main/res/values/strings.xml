@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sticky To-do</string>
+    <string name="title">To do</string>
+    <string name="title_count">To do (%1$d)</string>
+    <string name="refresh">Refresh</string>
+    <string name="add">Add</string>
+    <string name="new_task">New task</string>
+    <string name="add_hint">What needs doing?</string>
+    <string name="empty">Nothing to do 🎉</string>
+    <string name="empty_offline">Can\'t reach your to-do server.\nIs Tailscale on?</string>
+    <string name="offline_status">offline</string>
+    <string name="offline_toast">Couldn\'t reach the to-do server. Is Tailscale on?</string>
+    <string name="syncing">syncing…</string>
+    <string name="widget_description">Your to-do list. Tap a task to tick it off.</string>
+    <string name="server_label">Server address</string>
+    <string name="save_test">Save &amp; test</string>
+    <string name="open_web">Open web app</string>
+    <string name="pin_widget">Add widget to home screen</string>
+    <string name="pin_unsupported">Your launcher can\'t add widgets this way. Long-press the home screen → Widgets instead.</string>
+    <string name="sync_channel">Widget sync</string>
+    <string name="sync_notification">Refreshing your to-do widget on unlock</string>
+    <string name="checking">Checking connection…</string>
+    <string name="connected">✅ Connected. %1$d open tasks.</string>
+    <string name="not_connected">❌ Can\'t connect: %1$s\n\nMake sure Tailscale is on.</string>
+    <string name="how_to">To add the widget: long-press your home screen → Widgets → Sticky To-do, and drag it out.\n\nIn the widget: tap a task to tick it off (tap again to undo; ticked tasks stay for a day). + adds a task, ⟳ refreshes, and tapping the title opens the full app. It also refreshes by itself every 30 minutes.</string>
+</resources>

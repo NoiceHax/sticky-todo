@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>To do</title>
+<meta name="theme-color" content="#fde68a">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<style>
+  :root {
+    --paper: #fef3a0;
+    --paper-edge: #f6e27a;
+    --ink: #3b3417;
+    --muted: #8a7d3f;
+    --line: rgba(120, 100, 20, .16);
+    --accent: #b45309;
+    --danger: #b91c1c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font: 16px/1.4 "Segoe Print", "Bradley Hand", "Comic Sans MS", system-ui, sans-serif;
+    display: flex; flex-direction: column;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px 6px;
+    background: var(--paper-edge);
+    border-bottom: 1px solid var(--line);
+  }
+  header h1 { font-size: 18px; margin: 0; flex: 1; letter-spacing: .5px; }
+  #status { font: 12px system-ui, sans-serif; color: var(--muted); }
+  #status.off { color: var(--danger); }
+  form { display: flex; gap: 6px; padding: 10px 14px; }
+  #new {
+    flex: 1; min-width: 0;
+    font: inherit; color: inherit;
+    background: rgba(255,255,255,.45);
+    border: 1px solid var(--line); border-radius: 6px;
+    padding: 8px 10px; outline: none;
+  }
+  #new:focus { border-color: var(--accent); background: rgba(255,255,255,.7); }
+  button {
+    font: 14px system-ui, sans-serif; cursor: pointer;
+    border: 0; border-radius: 6px; background: transparent; color: var(--muted);
+  }
+  form button { background: var(--accent); color: #fff; padding: 0 14px; font-size: 20px; }
+  main { flex: 1; overflow-y: auto; padding: 0 6px 16px; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 7px 8px; border-bottom: 1px dashed var(--line);
+    touch-action: pan-y;
+  }
+  li.dragging { opacity: .5; background: rgba(255,255,255,.4); }
+  .grip { cursor: grab; color: var(--muted); opacity: .45; padding: 2px 0; user-select: none; touch-action: none; }
+  li:hover .grip { opacity: 1; }
+  input[type=checkbox] { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--accent); flex: none; cursor: pointer; }
+  .text { flex: 1; min-width: 0; overflow-wrap: anywhere; outline: none; border-radius: 4px; padding: 0 2px; cursor: text; }
+  .text a { color: var(--accent); }
+  .text[contenteditable=true] { background: rgba(255,255,255,.7); }
+  li.done .text { text-decoration: line-through; color: var(--muted); }
+  .del { opacity: 0; font-size: 16px; padding: 0 4px; }
+  li:hover .del, li:focus-within .del { opacity: .8; }
+  .del:hover { color: var(--danger); }
+  @media (hover: none) { .del { opacity: .5; } .grip { opacity: .6; } }
+  details { margin-top: 14px; padding: 0 8px; }
+  summary { font: 13px system-ui, sans-serif; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 8px; }
+  summary button { margin-left: auto; text-decoration: underline; }
+  .empty { text-align: center; color: var(--muted); padding: 28px 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>To do</h1>
+  <span id="status">…</span>
+</header>
+<form id="add" autocomplete="off">
+  <input id="new" placeholder="Add a task…" maxlength="500" enterkeyhint="done">
+  <button aria-label="Add">+</button>
+</form>
+<main>
+  <ul id="open"></ul>
+  <p class="empty" id="empty" hidden>Nothing to do 🎉</p>
+  <details id="doneBox" hidden>
+    <summary><span id="doneCount"></span><button type="button" id="clear">Clear</button></summary>
+    <ul id="done"></ul>
+  </details>
+</main>
+<script>
+const $ = (s) => document.querySelector(s);
+let state = { version: -1, todos: [] };
+let editing = null;      // id being edited: skip re-render so typing isn't clobbered
+let dragging = false;
+
+try { if (localStorage.getItem('doneOpen') === '1') $('#doneBox').open = true; } catch {}
+$('#doneBox').addEventListener('toggle', () => {
+  try { localStorage.setItem('doneOpen', $('#doneBox').open ? '1' : '0'); } catch {}
+});
+
+function setStatus(ok) {
+  const s = $('#status');
+  s.textContent = ok ? 'synced' : 'offline';
+  s.className = ok ? '' : 'off';
+}
+
+async function api(method, path, body) {
+  try {
+    const r = await fetch(path, {
+      method, headers: { 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!r.ok) throw new Error(r.status);
+    const next = await r.json();
+    setStatus(true);
+    if (next.version !== state.version) { state = next; render(); }
+  } catch { setStatus(false); }
+}
+
+const refresh = () => { if (!editing && !dragging) api('GET', '/api/todos'); };
+
+function item(t) {
+  const li = document.createElement('li');
+  li.dataset.id = t.id;
+  if (t.done) li.className = 'done';
+  li.innerHTML = `${t.done ? '' : '<span class="grip" title="Drag to reorder">⋮⋮</span>'}
+    <input type="checkbox" ${t.done ? 'checked' : ''} aria-label="Done">
+    <span class="text"></span>
+    <button class="del" title="Delete" aria-label="Delete">✕</button>`;
+  setText(li.querySelector('.text'), t.text);
+  return li;
+}
+
+// Plain text with http(s) URLs turned into links (text stays the source of truth for editing).
+function setText(el, text) {
+  const nodes = [];
+  let last = 0;
+  for (const m of text.matchAll(/https?:\/\/\S+/g)) {
+    if (m.index > last) nodes.push(text.slice(last, m.index));
+    const a = document.createElement('a');
+    a.href = m[0]; a.textContent = m[0]; a.target = '_blank'; a.rel = 'noopener';
+    nodes.push(a);
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) nodes.push(text.slice(last));
+  el.replaceChildren(...nodes);
+}
+
+function render() {
+  if (editing || dragging) return;
+  const open = state.todos.filter((t) => !t.done);
+  const done = state.todos.filter((t) => t.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0));
+  $('#open').replaceChildren(...open.map(item));
+  $('#done').replaceChildren(...done.map(item));
+  $('#empty').hidden = open.length > 0;
+  $('#doneBox').hidden = done.length === 0;
+  $('#doneCount').textContent = `Done (${done.length})`;
+  document.title = open.length ? `To do (${open.length})` : 'To do';
+}
+
+$('#add').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = $('#new').value.trim();
+  if (!text) return;
+  $('#new').value = '';
+  api('POST', '/api/todos', { text });
+});
+
+$('#clear').addEventListener('click', (e) => {
+  e.preventDefault();
+  if (confirm('Delete all done tasks?')) api('POST', '/api/todos/clear-done');
+});
+
+document.addEventListener('change', (e) => {
+  if (e.target.type !== 'checkbox') return;
+  const id = e.target.closest('li').dataset.id;
+  api('PATCH', '/api/todos/' + id, { done: e.target.checked });
+});
+
+document.addEventListener('click', (e) => {
+  const li = e.target.closest('li');
+  if (!li) return;
+  if (e.target.classList.contains('del')) return api('DELETE', '/api/todos/' + li.dataset.id);
+  if (e.target.classList.contains('text') && editing !== li.dataset.id) startEdit(e.target, li.dataset.id);
+});
+
+function startEdit(el, id) {
+  editing = id;
+  el.contentEditable = 'true';
+  el.focus();
+  const original = el.textContent;
+  const finish = (save) => {
+    el.removeEventListener('keydown', onKey);
+    el.contentEditable = 'false';
+    editing = null;
+    const text = el.textContent.trim();
+    if (save && text && text !== original) api('PATCH', '/api/todos/' + id, { text });
+    else { setText(el, original); refresh(); }
+  };
+  const onKey = (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+    if (e.key === 'Escape') { setText(el, original); el.blur(); }
+  };
+  el.addEventListener('keydown', onKey);
+  el.addEventListener('blur', () => finish(true), { once: true });
+}
+
+// Drag to reorder open tasks (pointer events: works with mouse and touch).
+$('#open').addEventListener('pointerdown', (e) => {
+  if (!e.target.classList.contains('grip')) return;
+  e.preventDefault();
+  const li = e.target.closest('li');
+  const list = $('#open');
+  dragging = true;
+  li.classList.add('dragging');
+  li.setPointerCapture(e.pointerId);
+  const move = (ev) => {
+    const over = [...list.children].find((c) => {
+      const r = c.getBoundingClientRect();
+      return c !== li && ev.clientY > r.top && ev.clientY < r.bottom;
+    });
+    if (!over) return;
+    const r = over.getBoundingClientRect();
+    list.insertBefore(li, ev.clientY < r.top + r.height / 2 ? over : over.nextSibling);
+  };
+  const up = () => {
+    li.removeEventListener('pointermove', move);
+    li.classList.remove('dragging');
+    dragging = false;
+    const ids = [...list.children].map((c) => c.dataset.id);
+    const doneIds = state.todos.filter((t) => t.done).map((t) => t.id);
+    api('POST', '/api/todos/reorder', { ids: [...ids, ...doneIds] });
+  };
+  li.addEventListener('pointermove', move);
+  li.addEventListener('pointerup', up, { once: true });
+  li.addEventListener('pointercancel', up, { once: true });
+});
+
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+window.addEventListener('focus', refresh);
+setInterval(refresh, 5000);
+refresh();
+if ('serviceWorker' in navigator && isSecureContext) navigator.serviceWorker.register('/sw.js').catch(() => {});
+</script>
+</body>
+</html>
