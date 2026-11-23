@@ -3,27 +3,51 @@
     android:id="@+id/row"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:gravity="center_vertical"
     android:minHeight="44dp"
-    android:orientation="horizontal"
-    android:paddingStart="12dp"
-    android:paddingTop="8dp"
-    android:paddingEnd="12dp"
-    android:paddingBottom="8dp">
+    android:orientation="horizontal">
+
+    <!-- Colour label: a 4dp stripe on the left (transparent when the task has no colour). -->
+    <ImageView
+        android:id="@+id/stripe"
+        android:layout_width="4dp"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no" />
 
     <ImageView
         android:id="@+id/check"
         android:layout_width="22dp"
         android:layout_height="22dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
         android:importantForAccessibility="no"
         android:src="@drawable/ic_unchecked" />
 
-    <TextView
-        android:id="@+id/text"
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:textColor="#3B3417"
-        android:textSize="15sp" />
+        android:orientation="vertical"
+        android:paddingTop="8dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:id="@+id/text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#3B3417"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/meta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textColor="#8A7D3F"
+            android:textSize="12sp"
+            android:visibility="gone" />
+    </LinearLayout>
 </LinearLayout>

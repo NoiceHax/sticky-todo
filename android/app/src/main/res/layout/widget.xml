@@ -51,13 +51,42 @@
             android:src="@drawable/ic_add" />
     </LinearLayout>
 
+    <!-- Two lists stacked, each scrolling on its own: Deadlines, then Tasks. -->
+    <TextView
+        android:id="@+id/label_deadlines"
+        style="@style/WidgetSection"
+        android:text="@string/section_deadlines_empty" />
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
         <ListView
-            android:id="@+id/list"
+            android:id="@+id/list_deadlines"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="#29786414"
+            android:dividerHeight="1dp" />
+
+        <TextView
+            android:id="@+id/empty_deadlines"
+            style="@style/WidgetEmpty"
+            android:text="@string/empty_deadlines" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/label_tasks"
+        style="@style/WidgetSection"
+        android:text="@string/section_tasks_empty" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ListView
+            android:id="@+id/list_tasks"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
@@ -66,13 +95,8 @@
             android:paddingBottom="6dp" />
 
         <TextView
-            android:id="@+id/empty"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:padding="12dp"
-            android:text="@string/empty"
-            android:textColor="#8A7D3F"
-            android:textSize="14sp" />
+            android:id="@+id/empty_tasks"
+            style="@style/WidgetEmpty"
+            android:text="@string/empty" />
     </FrameLayout>
 </LinearLayout>

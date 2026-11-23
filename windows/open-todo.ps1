@@ -58,12 +58,14 @@ for ($i = 0; $i -lt 45 -and -not $Url; $i++) {
 }
 if (-not $Url) { $Url = $Urls[0] }
 
-# Open the note unless it's already open. Top-right corner, sticky-note sized.
+# Open the note unless it's already open. Top-right corner.
 $note = Find-Note | Select-Object -First 1
 if (-not $note) {
   Add-Type -AssemblyName System.Windows.Forms
   $wa = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea
-  $w = 360; $h = 520
+  # Tall enough for the Deadlines and Tasks lists to each show a few items, but never
+  # taller than the screen allows.
+  $w = 380; $h = [Math]::Min(720, $wa.Height - 32)
   Start-Process $Browser -ArgumentList @(
     "--app=$Url", "--user-data-dir=`"$NoteProfile`"", '--no-first-run', '--no-default-browser-check',
     "--window-size=$w,$h", "--window-position=$($wa.Right - $w - 16),$($wa.Top + 16)")

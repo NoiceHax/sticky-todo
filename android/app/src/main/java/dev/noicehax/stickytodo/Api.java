@@ -27,12 +27,29 @@ final class Api {
         final String text;
         final boolean done;
         final double doneAt;
+        /** v2 fields; null when unset (or when talking to a v1 server). */
+        final String due, dueTime, priority, color, course;
+        /** Tags and time estimate (minutes, 0 if none) the user added. */
+        final List<String> tags = new ArrayList<>();
+        final int effortMin;
 
         Todo(JSONObject o) {
             id = o.optString("id");
             text = o.optString("text");
             done = o.optBoolean("done");
             doneAt = o.optDouble("doneAt", 0);
+            due = str(o, "due");
+            dueTime = str(o, "due_time");
+            priority = str(o, "priority");
+            color = str(o, "color");
+            course = str(o, "course");
+            JSONArray tg = o.optJSONArray("tags");
+            if (tg != null) for (int i = 0; i < tg.length(); i++) tags.add(tg.optString(i));
+            effortMin = o.optInt("effort_min", 0);
+        }
+
+        private static String str(JSONObject o, String k) {
+            return o.isNull(k) ? null : o.optString(k, null);
         }
     }
 
@@ -48,6 +65,15 @@ final class Api {
         return u;
     }
 
+    /** Tags show in the widget unless switched off in the app (matches the web note). */
+    static boolean showTags(Context c) {
+        return prefs(c).getBoolean("showTags", true);
+    }
+
+    static void setShowTags(Context c, boolean show) {
+        prefs(c).edit().putBoolean("showTags", show).apply();
+    }
+
     static void setBaseUrl(Context c, String url) {
         prefs(c).edit().putString("url", url.trim()).apply();
     }
@@ -57,7 +83,20 @@ final class Api {
     }
 
     static void add(Context c, String text) throws IOException {
-        request(c, "POST", "/api/todos", json("text", text));
+        add(c, text, null, null, null);
+    }
+
+    /** due is YYYY-MM-DD, priority high/medium/low, color one of the server's six; each may be null. */
+    static void add(Context c, String text, String due, String priority, String color) throws IOException {
+        JSONObject body = json("text", text);
+        try {
+            if (due != null) body.put("due", due);
+            if (priority != null) body.put("priority", priority);
+            if (color != null) body.put("color", color);
+        } catch (JSONException e) {
+            throw new IOException(e);
+        }
+        request(c, "POST", "/api/todos", body);
     }
 
     static void setDone(Context c, String id, boolean done) throws IOException {

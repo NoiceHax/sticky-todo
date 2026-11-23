@@ -5,4 +5,26 @@
         <item name="android:colorAccent">#B45309</item>
         <item name="android:colorPrimary">#F6E27A</item>
     </style>
+    <style name="WidgetSection">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">#24786414</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:paddingBottom">4dp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">#8A7D3F</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="WidgetEmpty">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:gravity">center</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:textColor">#8A7D3F</item>
+        <item name="android:textSize">13sp</item>
+    </style>
 </resources>

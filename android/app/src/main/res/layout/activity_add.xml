@@ -27,6 +27,54 @@
         android:textColor="#3B3417"
         android:textColorHint="#8A7D3F" />
 
+    <!-- Due date: tap to pick, ✕ clears. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/due"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="?android:attr/selectableItemBackground"
+            android:drawablePadding="6dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:text="@string/no_date"
+            android:textColor="#3B3417"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/clearDue"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:gravity="center"
+            android:text="✕"
+            android:textColor="#8A7D3F"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Priority chips and colour swatches are filled in by AddTaskActivity. -->
+    <LinearLayout
+        android:id="@+id/priorities"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:orientation="horizontal" />
+
+    <LinearLayout
+        android:id="@+id/colors"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

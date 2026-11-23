@@ -36,6 +36,12 @@ public class MainActivity extends Activity {
                 android.widget.Toast.makeText(this, R.string.pin_unsupported, android.widget.Toast.LENGTH_LONG).show();
             }
         });
+        android.widget.CheckBox tags = findViewById(R.id.showTags);
+        tags.setChecked(Api.showTags(this));
+        tags.setOnCheckedChangeListener((v, on) -> {
+            Api.setShowTags(this, on);
+            TodoWidget.refreshAll(this);
+        });
         findViewById(R.id.open).setOnClickListener(v ->
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Api.baseUrl(this) + "/"))));
         test();

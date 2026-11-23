@@ -1,6 +1,6 @@
 // Minimal service worker: makes the app installable and lets the shell open offline.
 // The to-do data itself (/api/*) always goes to the network.
-const CACHE = 'sticky-todo-v1';
+const CACHE = 'sticky-todo-v2';
 const SHELL = ['/', '/manifest.webmanifest', '/icon.svg', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', (e) => {
